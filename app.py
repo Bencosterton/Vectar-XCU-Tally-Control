@@ -10,22 +10,22 @@ import os
 
 app = Flask(__name__)
 
-# Configuration
-VECTAR_IP = "10.9.81.80"
+# config
+VECTAR_IP = "INSERT-YOUR-VECTAR-IP-HERE"
 SWITCHER_URL = f"http://{VECTAR_IP}/v1/dictionary?key=switcher"
 TALLY_URL = f"http://{VECTAR_IP}/v1/dictionary?key=tally"
 UPDATE_INTERVAL = 1  # seconds
 
-# Camera to XCU mapping
+# Camera to XCU mapping, add your Vectar inputs, and your GV CCU names
 CAMERA_TO_XCU = {
-    'input8': 'XCU-08',
-    'input9': 'XCU-09',
-    'input10': 'XCU-10',
+    'input1': 'XCU-01',
+    'input2': 'XCU-02',
+    'input3': 'XCU-03',
 }
 
-# Authentication credentials
-VECTAR_USER = 'admin'
-VECTAR_PASS = 'XY23qazwsx18'
+# Authentication credentials - Put your Vectar creds here if applicable
+VECTAR_USER = ''
+VECTAR_PASS = ''
 
 # Create auth object - using Digest Authentication
 auth = HTTPDigestAuth(VECTAR_USER, VECTAR_PASS)
@@ -102,7 +102,7 @@ def get_source_labels(session):
             
             # Process physical inputs
             for input_elem in root.findall('.//physical_input'):
-                input_num = input_elem.get('physical_input_number').lower()  # Convert Input1 to input1
+                input_num = input_elem.get('physical_input_number').lower()  # Convert Input1 to input1 (On my system Input1 is called input1, yours may be different)
                 label = input_elem.get('iso_label')
                 labels[input_num] = label
                 
@@ -201,7 +201,7 @@ def update_tally_state():
                     send_tally_command(xcu, 'red', should_be_red)
                     tally_states[camera]['red'] = should_be_red
                 
-                # Check if green tally state needs to change
+                # Check if green tally state needs to change  - I never got this to work....
                 if tally_states[camera]['green'] != should_be_green:
                     send_tally_command(xcu, 'green', should_be_green)
                     tally_states[camera]['green'] = should_be_green
