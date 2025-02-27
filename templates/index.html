@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vectar Tally Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .source-box {
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 24px;
+        }
+        .program {
+            background-color: #cc0000;
+        }
+        .preview {
+            background-color: #006600;
+        }
+        .source-label {
+            font-size: 36px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .source-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        .status {
+            font-size: 16px;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #333;
+        }
+        .status.error {
+            background-color: #660000;
+        }
+        .status.connected {
+            background-color: #006600;
+        }
+        .update-time {
+            font-size: 14px;
+            color: #888;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vectar Tally Monitor</h1>
+        
+        <div id="status-box" class="status">
+            Status: Not Connected
+        </div>
+
+        <div class="source-box program">
+            <div>PROGRAM</div>
+            <div id="program-sources">
+                <div class="source-item">Not Available</div>
+            </div>
+        </div>
+
+        <div class="source-box preview">
+            <div>PREVIEW</div>
+            <div id="preview-source" class="source-item">
+                Not Available
+            </div>
+        </div>
+
+        <div id="update-time" class="update-time">
+            Last Updated: Never
+        </div>
+    </div>
+
+    <script>
+        function updateStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    // Update status
+                    const statusBox = document.getElementById('status-box');
+                    statusBox.textContent = 'Status: ' + data.status;
+                    statusBox.className = 'status ' + (data.status === 'Connected' ? 'connected' : 'error');
+
+                    // Update program sources
+                    const programBox = document.getElementById('program-sources');
+                    if (data.program && data.program.length > 0) {
+                        programBox.innerHTML = data.program.map(source => 
+                            `<div class="source-item">${source.label} (${source.source})</div>`
+                        ).join('');
+                    } else {
+                        programBox.innerHTML = '<div class="source-item">Not Available</div>';
+                    }
+
+                    // Update preview
+                    const previewBox = document.getElementById('preview-source');
+                    if (data.preview) {
+                        previewBox.textContent = `${data.preview.label} (${data.preview.source})`;
+                    } else {
+                        previewBox.textContent = 'Not Available';
+                    }
+
+                    // Update time
+                    document.getElementById('update-time').textContent = 'Last Updated: ' + (data.last_update || 'Never');
+                })
+                .catch(error => {
+                    console.error('Error fetching status:', error);
+                    document.getElementById('status-box').textContent = 'Status: Error connecting to server';
+                    document.getElementById('status-box').className = 'status error';
+                });
+        }
+
+        // Update immediately and then every second
+        updateStatus();
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html>
