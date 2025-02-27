@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TallySender - Handles sending tally commands to camera control units
+TallySender - Handles sending tally commands to CCUs
 """
 
 import threading
@@ -37,7 +37,7 @@ class TallySender:
         self.current_preview_source = None
         
         # Track which XCUs have tally on to avoid duplicate commands
-        self.xcu_tally_state = {}  # Format: {'XCU-09': {'red': True, 'green': False}}
+        self.xcu_tally_state = {}  # Format: {'XCU-01': {'red': True, 'green': False}}
         
         logger.info(f"TallySender initialized with {len(self.controllers)} controllers")
     
@@ -125,7 +125,7 @@ class TallySender:
                 else:
                     target_state[xcu]['red'] = True
         
-        # Process preview source (green tally)
+        # Process preview source (green tally) - NOTE, I never got this to work
         if preview_source and preview_source in self.camera_to_xcu:
             xcu = self.camera_to_xcu[preview_source]
             if xcu not in target_state:
@@ -177,7 +177,7 @@ class TallySender:
         # Build command
         script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gv_tally_control.py")
         command = [
-            sys.executable,  # Use the same Python interpreter
+            sys.executable, 
             script_path,
             "--xcu", xcu,
             f"--{tally_type}", state_str
