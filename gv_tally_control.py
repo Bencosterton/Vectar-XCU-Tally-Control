@@ -24,24 +24,24 @@ logging.basicConfig(
 logger = logging.getLogger('gv_tally_control')
 
 # Constants
-DEFAULT_IP = "10.10.126.51"
-DEFAULT_PORT = 8080
+DEFAULT_IP = "PUT-GV-GATEWAY-IP-HERE"
+DEFAULT_PORT = 8080 # I think access IP will always be 8080, but check with nmap if unsure.
 
 # Map XCU names to their respective session IDs
 XCU_SESSION_IDS = {
-    "XCU-08": "PH1XQE",
-    "XCU-09": "9VDA4O",
-    "XCU-10": "8KXCNL"
+    "XCU-08": "PH3XQD", # These are the basestation serial names, 
+    "XCU-09": "4DIA2O", # Get them from the GV Control application
+    "XCU-10": "8KSIDK" # Yours will be unique
 }
 
 # Default session ID if XCU not found in the mapping
-DEFAULT_SESSION_ID = "9VDA4O"
+DEFAULT_SESSION_ID = ""
 
 # Function IDs for different tally types
 FUNCTION_IDS = {
-    "red": "8215",
-    "green": "8216",
-    "yellow": "8217"
+    "red": "8215", # These peramiters seem to be universalfor all cameras
+    "green": "8216", # I never got green to work
+    "yellow": "8217" # Also never got yellow to work, but I found these values, so....
 }
 
 def format_authentication_request(name="TallySender"):
@@ -134,7 +134,7 @@ def control_tally(ip, port, xcu_name, tally_type, state):
     Args:
         ip: IP address of the gateway
         port: Port number of the gateway
-        xcu_name: XCU device name (e.g., XCU-09)
+        xcu_name: XCU device name (e.g., XCU-01)
         tally_type: Type of tally (red, green, yellow)
         state: Desired state (on, off)
         
@@ -169,7 +169,7 @@ def control_tally(ip, port, xcu_name, tally_type, state):
     
     # Check for successful authentication
     # The gateway might not send a response immediately, or might send it after the next command
-    # We'll consider it successful if we don't get an error
+    # I consider it a success if we don't get an error
     if auth_response and "result=\"Ok\"" not in auth_response:
         logger.error(f"Authentication failed: {auth_response}")
         socket.close()
@@ -230,7 +230,7 @@ def main():
     parser.add_argument('--port', type=int, default=DEFAULT_PORT,
                         help=f'Port number of the gateway (default: {DEFAULT_PORT})')
     parser.add_argument('--xcu', 
-                        help='XCU device ID (e.g., XCU-09)')
+                        help='XCU device ID (e.g., XCU-01)')
     parser.add_argument('--session', 
                         help='Override session ID (normally determined automatically from XCU)')
     parser.add_argument('--red', choices=['on', 'off'],
