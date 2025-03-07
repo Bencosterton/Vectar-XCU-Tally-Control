@@ -50,6 +50,6 @@ You will have to go to Grass Valley LDK Gateway software to investigate the para
 Open the Log File and play with your exiing control method (RCP, Control System) to see the responses for each camera, which will include the paramter ids.
 
 ### Options:
-- `--ip`: Basestation IP address
-- `--port`: Basestation port
+- `--ip`: Gateway IP address
+- `--port`: Gateway port
 - `--red`: Set red tally
