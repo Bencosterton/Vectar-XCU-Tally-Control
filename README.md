@@ -21,6 +21,7 @@ This Flask based app 'listens' to Viz Vectar tally infrmation and relays that in
 - The Vectar IP address can be configured in the `app.py` file
 - Camera IPs and ports can be configured in the `app.py` file
 - XCU Basestation mapping can be configured in the `app.py` file
+- The GV Gateway can be configured in the `gv_tally_control.py` file
 - Default refresh rate is 1 second
 - Web interface runs on port 5000 by default
 
@@ -48,8 +49,3 @@ You will have to go to Grass Valley LDK Gateway software to investigate the para
 ![Screenshot from 2025-02-27 13-23-38](https://github.com/user-attachments/assets/69d2a41c-6b26-4ac8-a987-0bceb829bdf6)
 
 Open the Log File and play with your exiing control method (RCP, Control System) to see the responses for each camera, which will include the paramter ids.
-
-### Options:
-- `--ip`: Gateway IP address
-- `--port`: Gateway port
-- `--red`: Set red tally
