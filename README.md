@@ -1,4 +1,4 @@
-# Vectar Gras Valley Tally Relay
+# Vectar Grass Valley Tally Relay
 
 This Flask based app 'listens' to Viz Vectar tally infrmation and relays that info to Grass Valley LDK Gateway for triggering tallies on/off on cameras
 
