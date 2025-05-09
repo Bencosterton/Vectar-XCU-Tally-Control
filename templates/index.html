@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Vectar Tally Monitorand Control</title>
+    <title>Vectar Tally Monitor</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,11 +54,79 @@
             color: #888;
             margin-top: 20px;
         }
+        
+        .mapping-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #2a2a2a;
+            border-radius: 5px;
+        }
+        .mapping-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .mapping-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .mapping-table th, .mapping-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        .mapping-table th {
+            background-color: #333;
+        }
+        .mapping-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .mapping-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            align-items: center;
+        }
+        input, select, button {
+            padding: 8px;
+            background-color: #333;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 3px;
+        }
+        button {
+            cursor: pointer;
+            background-color: #444;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        .success-message {
+            color: #4CAF50;
+            margin-top: 10px;
+            display: none;
+        }
+        .error-message {
+            color: #F44336;
+            margin-top: 10px;
+            display: none;
+        }
+        .action-button {
+            background: none;
+            border: none;
+            color: #4CAF50;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .delete-button {
+            color: #F44336;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Vectar Tally Monitor and Control</h1>
+        <h1>Vectar Tally Monitor</h1>
         
         <div id="status-box" class="status">
             Status: Not Connected
@@ -80,6 +148,38 @@
 
         <div id="update-time" class="update-time">
             Last Updated: Never
+        </div>
+        
+        <!-- Camera Mapping Section -->
+        <div class="mapping-section">
+            <h2 class="mapping-title">Vectar to XCU Mapping</h2>
+            <p>Configure which Vectar inputs are mapped to which XCU devices.</p>
+            
+            <table class="mapping-table">
+                <thead>
+                    <tr>
+                        <th>Vectar Input</th>
+                        <th>XCU ID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="mapping-tbody">
+                </tbody>
+            </table>
+            
+            <div class="mapping-form">
+                <input type="text" id="new-input" placeholder="Input (e.g., input8)" />
+                <input type="text" id="new-xcu" placeholder="XCU ID (e.g., XCU-08)" />
+                <button id="add-mapping">Add Mapping</button>
+            </div>
+            
+            <div class="mapping-controls">
+                <button id="save-mapping">Save Mapping</button>
+                <button id="reset-mapping">Reset to Default</button>
+            </div>
+            
+            <p id="success-message" class="success-message">Mapping saved successfully!</p>
+            <p id="error-message" class="error-message">Error saving mapping.</p>
         </div>
     </div>
 
@@ -103,7 +203,7 @@
                         programBox.innerHTML = '<div class="source-item">Not Available</div>';
                     }
 
-                    // Update preview
+                    // Update preview sources
                     const previewBox = document.getElementById('preview-source');
                     if (data.preview) {
                         previewBox.textContent = `${data.preview.label} (${data.preview.source})`;
@@ -121,9 +221,161 @@
                 });
         }
 
-        // Update on page load and then every second
+        // Update at start and then every second
         updateStatus();
         setInterval(updateStatus, 1000);
+        
+        // Start the camera mapping logic
+        let currentMapping = {};
+        
+        // Load the current mapping
+        function loadCameraMapping() {
+            fetch('/camera-mapping')
+                .then(response => response.json())
+                .then(data => {
+                    currentMapping = data;
+                    renderMappingTable();
+                })
+                .catch(error => {
+                    console.error('Error loading camera mapping:', error);
+                    document.getElementById('error-message').textContent = 'Error loading camera mapping.';
+                    document.getElementById('error-message').style.display = 'block';
+                });
+        }
+        
+        // Save the mapping table
+        function renderMappingTable() {
+            const tbody = document.getElementById('mapping-tbody');
+            tbody.innerHTML = '';
+            
+            Object.entries(currentMapping).forEach(([input, xcu]) => {
+                const row = document.createElement('tr');
+                
+                const inputCell = document.createElement('td');
+                inputCell.textContent = input;
+                row.appendChild(inputCell);
+                
+                const xcuCell = document.createElement('td');
+                xcuCell.textContent = xcu;
+                row.appendChild(xcuCell);
+                
+                const actionsCell = document.createElement('td');
+                
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.className = 'action-button';
+                editButton.onclick = () => editMapping(input);
+                actionsCell.appendChild(editButton);
+                
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'action-button delete-button';
+                deleteButton.onclick = () => deleteMapping(input);
+                actionsCell.appendChild(deleteButton);
+                
+                row.appendChild(actionsCell);
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Add a new mapping
+        document.getElementById('add-mapping').addEventListener('click', () => {
+            const inputField = document.getElementById('new-input');
+            const xcuField = document.getElementById('new-xcu');
+            
+            const input = inputField.value.trim();
+            const xcu = xcuField.value.trim();
+            
+            if (!input || !xcu) {
+                document.getElementById('error-message').textContent = 'Both fields are required.';
+                document.getElementById('error-message').style.display = 'block';
+                return;
+            }
+            
+            if (!input.startsWith('input')) {
+                document.getElementById('error-message').textContent = 'Input must start with "input".';
+                document.getElementById('error-message').style.display = 'block';
+                return;
+            }
+            
+            if (!xcu.startsWith('XCU-')) {
+                document.getElementById('error-message').textContent = 'XCU must start with "XCU-".';
+                document.getElementById('error-message').style.display = 'block';
+                return;
+            }
+            
+            // Add to current mapping
+            currentMapping[input] = xcu;
+            
+            // Clear fields and hide error message
+            inputField.value = '';
+            xcuField.value = '';
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Updated the table
+            renderMappingTable();
+        });
+        
+        // Edit mapping 
+        function editMapping(input) {
+            document.getElementById('new-input').value = input;
+            document.getElementById('new-xcu').value = currentMapping[input];
+            
+            // Delete the existing entry as it will be re-added
+            deleteMapping(input);
+        }
+        
+        // Delete mapping
+        function deleteMapping(input) {
+            delete currentMapping[input];
+            renderMappingTable();
+        }
+        
+        // Save mapping to server
+        document.getElementById('save-mapping').addEventListener('click', () => {
+            fetch('/camera-mapping', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(currentMapping)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('success-message').style.display = 'block';
+                    document.getElementById('error-message').style.display = 'none';
+                    
+                    // Hide success message after 3 seconds
+                    setTimeout(() => {
+                        document.getElementById('success-message').style.display = 'none';
+                    }, 3000);
+                } else {
+                    document.getElementById('error-message').textContent = data.message || 'Error saving mapping.';
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('success-message').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error saving mapping:', error);
+                document.getElementById('error-message').textContent = 'Error saving mapping to server.';
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('success-message').style.display = 'none';
+            });
+        });
+        
+        // Reset to default mapping
+        document.getElementById('reset-mapping').addEventListener('click', () => {
+            currentMapping = {
+                'input8': 'XCU-08',
+                'input9': 'XCU-09',
+                'input10': 'XCU-10'
+            };
+            renderMappingTable();
+        });
+        
+        // Load camera mapping on page load
+        loadCameraMapping();
     </script>
 </body>
 </html>
