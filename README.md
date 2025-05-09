@@ -35,12 +35,6 @@ The application includes a tally sender module that forwards tally information t
 - Runs in a background thread for non-blocking operation
 
 
-## Tally Sender Module
-- You can edit the default tally mapping in the `app.py` file, or just delete it. I have put a place holder in there.
-- You can also edit the mapping from the web gui;
-![image](https://github.com/user-attachments/assets/438a079e-996e-4ee0-a676-67cb3439c12c)
-
-
 ## XCU Basestation Integration
 
 This system supports direct integration with Grassvalley XCU Universal basestations for camera tally control. The integration uses socket communication to send XML commands to the basestation.
@@ -55,3 +49,9 @@ You will have to go to Grass Valley LDK Gateway software to investigate the para
 ![Screenshot from 2025-02-27 13-23-38](https://github.com/user-attachments/assets/69d2a41c-6b26-4ac8-a987-0bceb829bdf6)
 
 Open the Log File and play with your exiing control method (RCP, Control System) to see the responses for each camera, which will include the paramter ids.
+
+
+## Camera Mapping 
+- You can edit the default tally mapping in the `app.py` file, or just delete it. I have put a place holder in there.
+- You can also edit the mapping from the web gui;
+![image](https://github.com/user-attachments/assets/438a079e-996e-4ee0-a676-67cb3439c12c)
